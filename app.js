@@ -38,14 +38,11 @@ let users = []; // Array to store connected users
 
 // defining function for getting data
 const backendUrl = process.env.BACKENDURL;
-const getData = (url) =>{
-axios.get(`${backendUrl}/api/user/${url}`)
-  .then(response => {
-    console.log(response.data);
-  })
-  .catch(error => {
-    console.error(`Error: ${error}`);
-});
+const getData =async (userId) =>{
+    return await axios.get(`${backendUrl}/api/user/${userId}`)
+    .catch(error => {
+        console.error(`Error: ${error}`);
+    });
 }
 
 io.on('connection', socket => { // Event listener for new socket connections
@@ -63,7 +60,7 @@ io.on('connection', socket => { // Event listener for new socket connections
     socket.on('sendMessage', async ({ senderId, receiverId, message, conversationId }) => { // Event listener for sending messages
         const receiver = users.find(user => user.userId === receiverId);
         const sender = users.find(user => user.userId === senderId);
-        const user = await Users.findById(senderId);// use axios to fetch user by userid.
+        const user = await getData(senderId);// use axios to fetch user by userid.
         
         if (receiver) {
             io.to(receiver.socketId).to(sender.socketId).emit('getMessage', { // Emitting message to sender and receiver
@@ -111,7 +108,7 @@ app.get('/api/conversations/:userId', async (req, res) => { // Route for getting
         const conversations = await Conversations.find({ members: { $in: [userId] } });
         const conversationUserData = Promise.all(conversations.map(async (conversation) => {
             const receiverId = conversation.members.find((member) => member !== userId);
-            const user = await Users.findById(receiverId); //change
+            const user = await getData(receiverId); //change
             return { user: { receiverId: user._id, email: user.email, name: user.name }, conversationId: conversation._id }
         }))
         res.status(200).json(await conversationUserData);
@@ -145,9 +142,9 @@ app.get('/api/message/:conversationId', async (req, res) => { // Route for getti
     try {
         const checkMessages = async (conversationId) => {
             console.log(conversationId, 'conversationId')
-            const messages = await Messages.find({ conversationId });
+            const messages = await Messages.find({conversationId});
             const messageUserData = Promise.all(messages.map(async (message) => {
-                const user = await Users.findById(message.senderId);
+                const user = await getData(message.senderId);
                 return { user: { id: user._id, email: user.email, name: user.name }, message: message.message }
             }));
             res.status(200).json(await messageUserData);
@@ -168,18 +165,18 @@ app.get('/api/message/:conversationId', async (req, res) => { // Route for getti
     }
 });
 
-app.get('/api/users/:userId', async (req, res) => { // Route for getting users
-    try {
-        const userId = req.params.userId;
-        const users = await Users.find({ _id: { $ne: userId } });
-        const usersData = Promise.all(users.map(async (user) => {
-            return { user: { email: user.email, name: user.name, receiverId: user._id } }
-        }))
-        res.status(200).json(await usersData);
-    } catch (error) {
-        console.log('Error', error)
-    }
-});
+// app.get('/api/users/:userId', async (req, res) => { // Route for getting users
+//     try {
+//         const userId = req.params.userId;
+//         const users = await getData(userId);
+//         const usersData = Promise.all(users.map(async (user) => {
+//             return { user: { email: user.email, name: user.name, receiverId: user._id } }
+//         }))
+//         res.status(200).json(await usersData);
+//     } catch (error) {
+//         console.log('Error', error)
+//     }
+// });
 
 httpServer.listen(port, () => { // Starting the server
     console.log('listening on port ' + port);
