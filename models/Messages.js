@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const messageSchema = mongoose.Schema({
     conversationId: {
@@ -14,4 +14,4 @@ const messageSchema = mongoose.Schema({
 
 const Messages = mongoose.model('Message', messageSchema);
 
-module.exports = Messages;
+export default Messages;
