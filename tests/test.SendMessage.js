@@ -1,15 +1,16 @@
 import { request } from "http";
+import { testData } from "./testdata.js";
 
 const sendMessageData = JSON.stringify({
-  conversationId: "user1-user2",
-  user: "user1",
-  message: "Hello, user2!",
+  conversationId: testData.conversationId,
+  user: testData.IdUser1,
+  message: testData.message,
 });
 
 const sendMessageOptions = {
   hostname: "localhost",
   port: 3001,
-  path: "/send-message",
+  path: "/api/send-message",
   method: "POST",
   headers: {
     "Content-Type": "application/json",
@@ -18,7 +19,9 @@ const sendMessageOptions = {
 };
 
 const sendMessageReq = request(sendMessageOptions, (res) => {
-  console.log(`send-message API status: ${res.statusCode}`);
+  console.log(
+    `send-message API status: ${res.statusMessage} ${res.statusCode}`
+  );
 });
 
 sendMessageReq.write(sendMessageData);

@@ -1,14 +1,15 @@
 import { request } from "http";
+import { testData } from "./testdata.js";
 
 const createConversationData = JSON.stringify({
-  user1: "user1",
-  user2: "user2",
+  user1: testData.IdUser1,
+  user2: testData.IdUser2,
 });
 
 const createConversationOptions = {
   hostname: "localhost",
   port: 3001,
-  path: "/create-conversation",
+  path: "/api/create-conversation",
   method: "POST",
   headers: {
     "Content-Type": "application/json",
