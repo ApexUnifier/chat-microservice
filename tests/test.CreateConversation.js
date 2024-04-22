@@ -7,7 +7,7 @@ const createConversationData = JSON.stringify({
 
 const createConversationOptions = {
   hostname: "localhost",
-  port: 3000,
+  port: 3001,
   path: "/create-conversation",
   method: "POST",
   headers: {
@@ -17,7 +17,9 @@ const createConversationOptions = {
 };
 
 const createConversationReq = request(createConversationOptions, (res) => {
-  console.log(`create-conversation API status: ${res.statusCode}`);
+  console.log(
+    `create-conversation API status: ${res.statusMessage} ${res.statusCode}`
+  );
 });
 
 createConversationReq.write(createConversationData);
