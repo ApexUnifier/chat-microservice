@@ -68,7 +68,7 @@ io.on('connection', socket => { // Event listener for new socket connections
                 message,
                 conversationId,
                 receiverId,
-                user: { id: user._id, name: user.name, email: user.email }
+                user: { _id: user._id, name: user.name, email: user.email }
             });
         } else {
             io.to(sender.socketId).emit('getMessage', { // Emitting message to sender only
@@ -76,7 +76,7 @@ io.on('connection', socket => { // Event listener for new socket connections
                 message,
                 conversationId,
                 receiverId,
-                user: { id: user._id, name: user.name, email: user.email }
+                user: { _id: user._id, name: user.name, email: user.email }
             });
         }
     });
@@ -141,14 +141,26 @@ app.post('/api/message', async (req, res) => { // Route for sending messages
 app.get('/api/message/:conversationId', async (req, res) => { // Route for getting messages
     try {
         const checkMessages = async (conversationId) => {
-            console.log(conversationId, 'conversationId')
-            const messages = await Messages.find({conversationId});
-            const messageUserData = Promise.all(messages.map(async (message) => {
-                const user = await getData(message.senderId);
-                return { user: { id: user._id, email: user.email, name: user.name }, message: message.message }
-            }));
+            console.log(conversationId, 'conversationId');
+            const messages = await Messages.findById( {conversationId});
+            console.log(messages.body);
+            // const messageUserData = Promise.all(messages.body.map(async (message) => {
+            //     try {
+            //         const user = await getData(message.senderId);
+            //         if (user && user._id) {
+            //             return { user: { id: user._id, email: user.email, name: user.name }, message: message.message };
+            //         } else {
+            //             console.error("User or user._id is undefined");
+            //             return null; // or handle the case where user or user._id is undefined
+            //         }
+            //     } catch (error) {
+            //         console.error("Error fetching user data:", error);
+            //         return null; // or handle the error
+            //     }
+            // }));
             res.status(200).json(await messageUserData);
-        }
+        };
+        
         const conversationId = req.params.conversationId;
         if (conversationId === 'new') {
             const checkConversation = await Conversations.find({ members: { $all: [req.query.senderId, req.query.receiverId] } });
