@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import bodyParser from "body-parser";
 
 const app = express();
+
 app.use(json());
 app.use(bodyParser.json());
 
@@ -60,7 +61,7 @@ app.post("/api/send-message", async (req, res) => {
   const conversation = await Conversation.findById(conversationId);
 
   if (conversation) {
-    conversation.messages.push({ user, message });
+    conversation.messages.push({ user, message: message });
     await conversation.save();
     res.send({ status: "Message sent" });
   } else {
@@ -101,6 +102,46 @@ app.get("/api/fetch-conversations/:userId", async (req, res) => {
   } else {
     res.send({ status: "No conversations found" });
   }
+});
+
+// requset should be like this
+// {
+//   "users": ["user1", "user2", "user3"],
+//   "message": "Hello, this is a message from AI2"
+// }
+
+app.post("/api/message-from-ai", async (req, res) => {
+  const { users, message } = req.body;
+  const aiId = "662926a964eb192f681f3c41";
+  let results = [];
+
+  for (let i = 0; i < users.length; i++) {
+    const user = users[i];
+    const conversationId = `${aiId}-${user}`;
+    const conversationId2 = `${user}-${aiId}`;
+
+    // Check if conversation already exists
+    const existingConversation = await Conversation.findOne({
+      $or: [{ conversationId }, { conversationId: conversationId2 }],
+    });
+    if (existingConversation) {
+      // If conversation already exists, return existing conversation's MongoDB _id
+      existingConversation.messages.push({ aiId, message });
+      const result = await existingConversation.save();
+      results.push({ status: "Message sent", result });
+    } else {
+      // If conversation does not exist, create new conversation and return new conversation's MongoDB _id
+      const conversation = new Conversation({
+        conversationId,
+        aiId,
+        user,
+        messages: [{ aiId, message }],
+      });
+      const result = await conversation.save();
+      results.push({ status: "Message sent", result });
+    }
+  }
+  res.send(results);
 });
 
 app.listen(3001, () => console.log("Server running on port 3001"));
